@@ -3,6 +3,18 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pic'n'Go QR Sheet Generator</title>
+
+<!-- ══ GOOGLE ANALYTICS 4 ══════════════════════════════════════════════
+     Replace G-XXXXXXXXXX with your GA4 Measurement ID
+     (found in GA4 → Admin → Data Streams → your stream → Measurement ID)
+     ═══════════════════════════════════════════════════════════════════ -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-BWP6NX330M"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-BWP6NX330M');
+</script>
 <script>
 /* QR Code library — inline standalone, no external dependencies */
 /* QR Code — standalone, MIT, compatible with davidshimjs/qrcodejs API */
@@ -879,6 +891,7 @@ function _setPageSize() {
 /* ── HOME PRINT — no crop marks ── */
 function homePrint() {
   if (!validate()) return;
+  logUsage('home');
   _setPageSize();
   document.body.classList.add('print-no-crops');
   window.print();
@@ -888,6 +901,7 @@ function homePrint() {
 /* ── PDF / PROFESSIONAL PRINT — crop marks + high-res QR (3×) ── */
 function pdfPrint() {
   if (!validate()) return;
+  logUsage('pdf');
   _setPageSize();
 
   /* Render QR at 3× pixel density for print-sharp output at 300 DPI */
@@ -921,6 +935,45 @@ function pdfPrint() {
     colorDark: '#574C91', colorLight: '#FFFFFF',
     correctLevel: QRCode.CorrectLevel.H
   });
+}
+
+/* ── USAGE LOGGING ─────────────────────────────────────────────────────
+   Sends data to Google Analytics (event) and Google Sheet (fetch POST).
+   Called from homePrint() and pdfPrint() after validate() passes.
+   printType: 'home' | 'pdf'
+   ─────────────────────────────────────────────────────────────────── */
+var SHEET_WEBHOOK = 'https://script.google.com/macros/s/AKfycbwtgObXJheB5sIr0mNOOAIO5halanuCW16khG_B9rdndiGfAqVNOW-hzvUi4FxdeQkd/exec';
+
+function logUsage(printType) {
+  var venueName = document.getElementById('inp-name').value.trim();
+  var url       = document.getElementById('inp-url').value.trim();
+  var sheetSize = document.getElementById('sel-size').value.toUpperCase();
+
+  /* — Google Analytics 4 event — */
+  if (typeof gtag === 'function') {
+    gtag('event', 'qr_sheet_printed', {
+      print_type:  printType,   /* 'home' or 'pdf' */
+      venue_name:  venueName,
+      venue_url:   url,
+      sheet_size:  sheetSize
+    });
+  }
+
+  /* — Google Sheet via Apps Script — */
+  if (SHEET_WEBHOOK && SHEET_WEBHOOK !== 'PASTE_YOUR_APPS_SCRIPT_URL_HERE') {
+    fetch(SHEET_WEBHOOK, {
+      method: 'POST',
+      mode:   'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        timestamp:  new Date().toISOString(),
+        venueName:  venueName,
+        url:        url,
+        sheetSize:  sheetSize,
+        printType:  printType
+      })
+    }).catch(function() { /* silent — never interrupt printing */ });
+  }
 }
 
 function validate() {
