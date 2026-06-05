@@ -462,6 +462,60 @@ body {
 }
 #scan-reminder .sr-btn:hover { opacity: 0.88; }
 
+/* ══ VALIDATION POPUP ════════════════════════════════ */
+#val-popup {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+  padding: 32px 36px 26px;
+  max-width: 360px;
+  width: 90%;
+  text-align: center;
+  z-index: 9999;
+  font-family: 'Poppins', sans-serif;
+}
+#val-popup.visible { display: block; }
+#val-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 9998;
+}
+#val-overlay.visible { display: block; }
+#val-popup .vp-icon  { font-size: 40px; margin-bottom: 10px; }
+#val-popup .vp-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--purple);
+  margin-bottom: 8px;
+}
+#val-popup .vp-msg {
+  font-size: 14px;
+  color: var(--grey);
+  line-height: 1.6;
+  margin-bottom: 22px;
+}
+#val-popup .vp-msg strong { color: var(--coral); }
+#val-popup .vp-btn {
+  background: var(--purple);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 28px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+}
+#val-popup .vp-btn:hover { opacity: 0.88; }
+
 </style>
 <style id="dyn-page-style">@media print { @page { size: A4 portrait; margin: 0; } }</style></head>
 <body>
@@ -725,11 +779,30 @@ function logUsage(printType) {
   }
 }
 
+function closeValPopup() {
+  document.getElementById('val-overlay').classList.remove('visible');
+  document.getElementById('val-popup').classList.remove('visible');
+}
+
+function showValPopup(msg) {
+  document.getElementById('val-msg').innerHTML = msg;
+  document.getElementById('val-overlay').classList.add('visible');
+  document.getElementById('val-popup').classList.add('visible');
+}
+
 function validate() {
   var name = document.getElementById('inp-name').value.trim();
   var url  = document.getElementById('inp-url').value.trim();
-  if (!name || !url) {
-    alert('Please enter your venue name and Pic\'n\'Go URL before continuing.');
+  if (!name && !url) {
+    showValPopup('Please add your <strong>Venue Name</strong> and <strong>Pic\'n\'Go URL</strong> before printing.');
+    return false;
+  }
+  if (!name) {
+    showValPopup('Please add your <strong>Venue Name</strong> before printing.');
+    return false;
+  }
+  if (!url) {
+    showValPopup('Please add your <strong>Pic\'n\'Go URL</strong> before printing.');
     return false;
   }
   return true;
@@ -737,6 +810,15 @@ function validate() {
 </script>
 
 
+
+<!-- ══ VALIDATION POPUP ═════════════════════════════════════════════ -->
+<div id="val-overlay" onclick="closeValPopup()"></div>
+<div id="val-popup" role="dialog" aria-modal="true">
+  <div class="vp-icon">⚠️</div>
+  <div class="vp-title">Almost there!</div>
+  <div class="vp-msg" id="val-msg">Please fill in all fields before printing.</div>
+  <button class="vp-btn" onclick="closeValPopup()">OK, I'll fill it in</button>
+</div>
 
 <!-- ══ SCAN REMINDER POPUP ══════════════════════════════════════════ -->
 <div id="scan-reminder-overlay" onclick="closeScanReminder()"></div>
