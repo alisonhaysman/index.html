@@ -409,6 +409,59 @@ body {
 
 } /* end @media print */
 
+/* ══ SCAN REMINDER POPUP ══════════════════════════════ */
+#scan-reminder {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.22);
+  padding: 36px 40px 28px;
+  max-width: 380px;
+  width: 90%;
+  text-align: center;
+  z-index: 9999;
+  font-family: 'Poppins', sans-serif;
+}
+#scan-reminder.visible { display: block; }
+#scan-reminder-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 9998;
+}
+#scan-reminder-overlay.visible { display: block; }
+#scan-reminder .sr-icon  { font-size: 44px; margin-bottom: 12px; }
+#scan-reminder .sr-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--purple);
+  margin-bottom: 10px;
+}
+#scan-reminder .sr-body  {
+  font-size: 14px;
+  color: var(--grey);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+#scan-reminder .sr-btn {
+  background: var(--coral);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 28px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+}
+#scan-reminder .sr-btn:hover { opacity: 0.88; }
+
 </style>
 <style id="dyn-page-style">@media print { @page { size: A4 portrait; margin: 0; } }</style></head>
 <body>
@@ -509,6 +562,20 @@ function liveUpdate() {
   }
 }
 
+var scanReminderShown = false;
+
+function showScanReminder() {
+  if (scanReminderShown) return;
+  scanReminderShown = true;
+  document.getElementById('scan-reminder-overlay').classList.add('visible');
+  document.getElementById('scan-reminder').classList.add('visible');
+}
+
+function closeScanReminder() {
+  document.getElementById('scan-reminder-overlay').classList.remove('visible');
+  document.getElementById('scan-reminder').classList.remove('visible');
+}
+
 function buildQR(url) {
   var isA4  = document.getElementById('sel-size').value === 'a4';
   var sz    = isA4 ? 350 : 240;
@@ -521,6 +588,7 @@ function buildQR(url) {
     colorLight: '#FFFFFF',
     correctLevel: QRCode.CorrectLevel.H
   });
+  setTimeout(showScanReminder, 800);
 }
 
 function resetQR() {
@@ -669,5 +737,16 @@ function validate() {
 </script>
 
 
+
+<!-- ══ SCAN REMINDER POPUP ══════════════════════════════════════════ -->
+<div id="scan-reminder-overlay" onclick="closeScanReminder()"></div>
+<div id="scan-reminder" role="dialog" aria-modal="true">
+  <div class="sr-icon">📱</div>
+  <div class="sr-title">Test your QR code first!</div>
+  <div class="sr-body">
+    Before sending to print, please scan the QR code on screen with your phone camera to make sure it takes you to the right page.
+  </div>
+  <button class="sr-btn" onclick="closeScanReminder()">Got it — I'll scan it now</button>
+</div>
 
 </body></html>
